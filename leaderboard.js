@@ -37,7 +37,7 @@ if (Meteor.isClient) {
     },
     'click .remove': function(){
       var selectedPlayer = Session.get('selectedPlayer');
-      PlayersList.remove(selectedPlayer);
+      Meteor.call("removePlayerData", selectedPlayer);
     }
   });
 
@@ -45,15 +45,8 @@ if (Meteor.isClient) {
     'submit form': function(event,template){
       event.preventDefault();
       var playerNameVar = event.target.playerName.value;
-      var currentUserId = Meteor.userId();
-
-      PlayersList.insert({
-        name: playerNameVar,
-        score: 0,
-        createdBy: currentUserId
-      }); 
-      
-      template.find("form").reset()
+      Meteor.call("insertPlayerData", playerNameVar);
+      template.find("form").reset();
     }
   });
 }
@@ -62,5 +55,20 @@ if (Meteor.isServer) {
   Meteor.publish('thePlayers', function(){
     var currentUserId = this.userId;
     return PlayersList.find({createdBy: currentUserId});
+  });
+
+  Meteor.methods({
+    'insertPlayerData': function(playerNameVar){
+      var currentUserId = Meteor.userId();
+      PlayersList.insert({
+        name: playerNameVar,
+        score: 0,
+        createdBy: currentUserId
+      }); 
+    },
+    'removePlayerData': function(selectedPlayer){
+      var currentUserId = Meteor.userId();
+      PlayersList.remove({_id: selectedPlayer, createdBy: currentUserId});
+    }
   });
 }
